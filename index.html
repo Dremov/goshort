@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GoShort</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 50px auto; text-align: center; }
+        input { padding: 10px; width: 70%; font-size: 16px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #007d9c; color: white; border: none; }
+        #result { margin-top: 20px; font-size: 18px; color: #333; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>GoShort</h1>
+    <p>Enter a long URL to shorten it:</p>
+    
+    <input type="text" id="longUrl" placeholder="https://example.com" />
+    <button onclick="shortenUrl()">Shorten</button>
+    
+    <div id="result"></div>
+
+    <script>
+        async function shortenUrl() {
+            const input = document.getElementById("longUrl").value;
+            const resultDiv = document.getElementById("result");
+            
+            if (!input) {
+                alert("Please enter a URL");
+                return;
+            }
+
+            try {
+                // This talks to your Go "handleShorten" function!
+                const response = await fetch("/shorten", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url: input })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Server error");
+                }
+
+                const data = await response.json();
+                
+                // Construct the full link
+                const fullShortUrl = window.location.origin + "/" + data.short_code;
+                resultDiv.innerHTML = 'Your short link: <a href="' + fullShortUrl + '">' + fullShortUrl + '</a>';
+            } catch (err) {
+                resultDiv.innerHTML = '<span class="error">Error creating link.</span>';
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -4,12 +4,17 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"math/rand"
 	"net/http"
 
+	_ "embed"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
+
+//go:embed index.html
+var indexHTML string
 
 type Link struct {
 	ID          int
@@ -50,7 +55,13 @@ func main() {
 
 		// If the code is empty (user visited just "/"), just print a message
 		if shortPath == "" {
-			fmt.Fprintf(responseWriter, "Welcome to GoShort! Use the API to create links.")
+			template, err := template.New("index").Parse(indexHTML)
+			if err != nil {
+				http.Error(responseWriter, "Internal Server Error: Failed to parse indexHTML", http.StatusInternalServerError)
+				return
+			}
+
+			template.Execute(responseWriter, nil)
 			return
 		}
 
